@@ -7,14 +7,16 @@ import 'package:intl/intl.dart';
 import '../models/product.dart';
 
 class Products with ChangeNotifier {
-  String token;
+  String token, userId;
 
-  void updateData(tokenData) {
+  void updateData(tokenData, uid) {
     token = tokenData;
+    userId = uid;
     notifyListeners();
   }
 
-  String urlMaster = "https://authen-project-de60a-default-rtdb.firebaseio.com/";
+  String urlMaster =
+      "https://authen-project-de60a-default-rtdb.firebaseio.com/";
   List<Product> _allProduct = [];
 
   List<Product> get allProduct => _allProduct;
@@ -30,6 +32,7 @@ class Products with ChangeNotifier {
           "price": price,
           "createdAt": dateNow.toString(),
           "updatedAt": dateNow.toString(),
+          "userId":userId,
         }),
       );
 
@@ -101,7 +104,7 @@ class Products with ChangeNotifier {
   }
 
   Future<void> inisialData() async {
-    Uri url = Uri.parse("$urlMaster/products.json?auth=$token");
+    Uri url = Uri.parse('$urlMaster/products.json?auth=$token&orderBy="userId"&equalTo="$userId"');
 
     try {
       var response = await http.get(url);
@@ -115,7 +118,8 @@ class Products with ChangeNotifier {
         if (data != null) {
           data.forEach(
             (key, value) {
-              Product prod = Product(
+              if (value["userId"] ==userId ) {
+                Product prod = Product(
                 id: key,
                 title: value["title"],
                 price: value["price"],
@@ -125,6 +129,8 @@ class Products with ChangeNotifier {
                     DateFormat("yyyy-mm-dd hh:mm:ss").parse(value["updatedAt"]),
               );
               _allProduct.add(prod);
+              }
+              
             },
           );
         }
