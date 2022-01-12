@@ -1,14 +1,17 @@
-import 'package:authentication/pages/add_product_page.dart';
 import 'package:authentication/pages/authen_page.dart';
-import 'package:authentication/pages/edit_product_page.dart';
-import 'package:authentication/pages/home_page.dart';
-import 'package:authentication/providers/auth.dart';
-import 'package:authentication/providers/products.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import './providers/products.dart';
+import './providers/auth.dart';
+
+import './pages/home_page.dart';
+
+import './pages/add_product_page.dart';
+import './pages/edit_product_page.dart';
+
 void main() {
-  runApp( MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -21,13 +24,29 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProxyProvider<Auth, Products>(
           create: (context) => Products(),
-          update: (context, auth, products) => products..updateData(auth.token,auth.userId),
+          update: (context, auth, products) =>
+              products..updateData(auth.token, auth.userId),
         ),
       ],
       builder: (context, child) => Consumer<Auth>(
         builder: (context, auth, child) => MaterialApp(
           debugShowCheckedModeBanner: false,
-          home: auth.isAuth ? HomePage() : LoginPage(),
+          home: auth.isAuth
+              ? HomePage()
+              : FutureBuilder(
+                  future: auth.autoLogin(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Scaffold(
+                        body: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    return LoginPage();
+                  },
+                ),
           routes: {
             AddProductPage.route: (ctx) => AddProductPage(),
             EditProductPage.route: (ctx) => EditProductPage(),
