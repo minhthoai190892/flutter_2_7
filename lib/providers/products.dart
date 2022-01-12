@@ -104,6 +104,7 @@ class Products with ChangeNotifier {
   }
 
   Future<void> inisialData() async {
+    _allProduct = [];
     Uri url = Uri.parse('$urlMaster/products.json?auth=$token&orderBy="userId"&equalTo="$userId"');
 
     try {
